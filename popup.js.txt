@@ -1,0 +1,21 @@
+const statusMessage = document.getElementById('status-message');
+const refreshButton = document.getElementById('refresh');
+
+function fetchStatus() {
+    chrome.storage.local.get('dynamicUrl', (result) => {
+        if (result.dynamicUrl) {
+            statusMessage.textContent = `✅ Access Allowed at ${result.dynamicUrl}`;
+            statusMessage.style.color = "green";
+        } else {
+            statusMessage.textContent = "🚫 Access Denied or URL not fetched.";
+            statusMessage.style.color = "red";
+        }
+    });
+}
+
+refreshButton.addEventListener('click', () => {
+    statusMessage.textContent = "🔄 Refreshing...";
+    fetchStatus();
+});
+
+fetchStatus();

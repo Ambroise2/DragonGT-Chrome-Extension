@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dragon GT Status</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <div id="status-container">
+        <h2>🔍 Dragon GT Status</h2>
+        <p id="status-message">Checking status...</p>
+        <button id="refresh">🔄 Refresh Status</button>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>
